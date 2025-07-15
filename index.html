@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+ <meta charset="UTF-8" />
+
+ <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+ <title>Dev Playground 🚀</title>
+
+ <style>
+
+  body {
+
+   font-family: Arial, sans-serif;
+
+   margin: 20px;
+
+   max-width: 900px;
+
+   margin-left: auto;
+
+   margin-right: auto;
+
+   background: #f9f9f9;
+
+   color: #222;
+
+  }
+
+  h1, h2 {
+
+   text-align: center;
+
+  }
+
+  textarea {
+
+   width: 100%;
+
+   height: 180px;
+
+   font-family: monospace;
+
+   font-size: 14px;
+
+   margin-top: 8px;
+
+   border-radius: 6px;
+
+   border: 1px solid #ccc;
+
+   padding: 10px;
+
+   resize: vertical;
+
+   background: white;
+
+   color: black;
+
+  }
+
+  select, input[type="text"] {
+
+   font-size: 14px;
+
+   padding: 6px;
+
+   border-radius: 4px;
+
+   border: 1px solid #aaa;
+
+   margin-right: 8px;
+
+  }
+
+  button {
+
+   background: #007bff;
+
+   border: none;
+
+   color: white;
+
+   padding: 8px 16px;
+
+   border-radius: 4px;
+
+   cursor: pointer;
+
+   margin-right: 8px;
+
+   margin-top: 8px;
+
+   font-weight: bold;
+
+  }
+
+  button:hover {
+
+   background: #0056b3;
+
+  }
+
+  pre {
+
+   background: #222;
+
+   color: #0f0;
+
+   padding: 10px;
+
+   border-radius: 6px;
+
+   white-space: pre-wrap;
+
+   min-height: 80px;
+
+   margin-top: 8px;
+
+   font-family: monospace;
+
+  }
+
+  .flex-row {
+
+   display: flex;
+
+   flex-wrap: wrap;
+
+   gap: 10px;
+
+   align-items: center;
+
+   margin-top: 10px;
+
+  }
+
+  .projects-list button {
+
+   background: #6c757d;
+
+   color: white;
+
+   margin-bottom: 6px;
+
+   width: 100%;
+
+   border-radius: 4px;
+
+  }
+
+  .projects-list button.active {
+
+   background: #28a745;
+
+  }
+
+  img, video {
+
+   max-width: 100%;
+
+   border-radius: 8px;
+
+   margin-top: 10px;
+
+  }
+
+  @media (max-width: 600px) {
+
+   button, select, input[type="text"] {
+
+    width: 100%;
+
+    margin-right: 0;
+
+   }
+
+   .flex-row {
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+   }
+
+  }
+
+ </style>
+
+</head>
+
+<body>
+
+ <h1>Dev Playground 🚀</h1>
+
+ <section>
+
+  <h2>Проекты</h2>
+
+  <div class="flex-row" style="gap:10px;">
+
+   <input type="text" id="projectName" placeholder="Имя проекта" />
+
+   <button id="saveProjectBtn">Сохранить проект</button>
+
+   <button id="newProjectBtn">Новый проект</button>
+
+  </div>
+
+  <div class="projects-list" id="projectsList" style="margin-top:10px; max-height:120px; overflow-y:auto;"></div>
+
+ </section>
+
+
+
+ <section style="margin-top:30px;">
+
+  <h2>Редактор кода</h2>
+
+  <div class="flex-row">
+
+   <select id="languageSelect">
+
+    <option value="python">Python</option>
+
+    <option value="javascript">JavaScript</option>
+
+    <option value="java">Java</option>
+
+    <option value="cpp">C++</option>
+
+   </select>
+
+   <button id="runCodeBtn">Запустить</button>
+
+   <button id="autoFixBtn">Автоисправить</button>
+
+  </div>
+
+  <textarea id="codeEditor">print("Hello, world!")</textarea>
+
+  <pre id="outputArea">Результат выполнения появится здесь...</pre>
+
+ </section>
+
+
+
+ <section style="margin-top:30px;">
+
+  <h2>Генерация изображений и видео</h2>
+
+  <input type="text" id="promptInput" placeholder="Введите запрос для генерации" />
+
+  <div class="flex-row">
+
+   <button id="genImageBtn">Сгенерировать изображение</button>
+
+   <button id="genVideoBtn">Сгенерировать видео</button>
+
+   <button id="exportApkBtn">Экспорт APK</button>
+
+  </div>
+
+  <div id="mediaContainer"></div>
+
+ </section>
+
+
+
+ <script>
+
+  // Хранение проектов в localStorage
+
+  const projectsKey = 'dev_playground_projects';
+
+  let projects = JSON.parse(localStorage.getItem(projectsKey)) || [];
+
+  let currentProjectName = '';
+
+  let currentCode = 'print("Hello, world!")';
+
+
+
+  const projectNameInput = document.getElementById('projectName');
+
+  const projectsListDiv = document.getElementById('projectsList');
+
+  const codeEditor = document.getElementById('codeEditor');
+
+  const outputArea = document.getElementById('outputArea');
+
+  const languageSelect = document.getElementById('languageSelect');
+
+  const promptInput = document.getElementById('promptInput');
+
+  const mediaContainer = document.getElementById('mediaContainer');
+
+
+
+  function saveProjectsToStorage() {
+
+   localStorage.setItem(projectsKey, JSON.stringify(projects));
+
+  }
+
+
+
+  function refreshProjectsList() {
+
+   projectsListDiv.innerHTML = '';
+
+   projects.forEach(p => {
+
+    const btn = document.createElement('button');
+
+    btn.textContent = p.name;
+
+    btn.className = p.name === currentProjectName ? 'active' : '';
+
+    btn.onclick = () => {
+
+     loadProject(p.name);
+
+    };
+
+    projectsListDiv.appendChild(btn);
+
+   });
+
+  }
+
+
+
+  function loadProject(name) {
+
+   const project = projects.find(p => p.name === name);
+
+   if (project) {
+
+    currentProjectName = project.name;
+
+    projectNameInput.value = project.name;
+
+    codeEditor.value = project.code;
+
+    outputArea.textContent = 'Проект загружен.';
+
+    refreshProjectsList();
+
+   }
+
+  }
+
+
+
+  function saveCurrentProject() {
+
+   const name = projectNameInput.value.trim();
+
+   if (!name) {
+
+    alert('Введите имя проекта!');
+
+    return;
+
+   }
+
+   const existingIndex = projects.findIndex(p => p.name === name);
+
+   if (existingIndex >= 0) {
+
+    projects[existingIndex].code = codeEditor.value;
+
+   } else {
+
+    projects.push({ name, code: codeEditor.value });
+
+   }
+
+   currentProjectName = name;
+
+   saveProjectsToStorage();
+
+   refreshProjectsList();
+
+   alert('Проект сохранен.');
+
+  }
+
+
+
+  function newProject() {
+
+   currentProjectName = '';
+
+   projectNameInput.value = '';
+
+   codeEditor.value = 'print("Hello, world!")';
+
+   outputArea.textContent = '';
+
+   refreshProjectsList();
+
+  }
+
+
+
+  // Имитация запуска кода (в реале тут нужен сервер или sandbox)
+
+  function runCode() {
+
+   const lang = languageSelect.value;
+
+   const code = codeEditor.value;
+
+   outputArea.textContent = `--- Вывод (${lang}) ---\n` + code + '\n\n(Это заглушка, реальный запуск не реализован)';
+
+  }
+
+
+
+  // Имитация автоисправления — простая подмена
+
+  function autoFix() {
+
+   let code = codeEditor.value;
+
+   let fixedCode = code.replace('print("Hello, world!")', 'print("Hello, AI fixed world!")');
+
+   if (fixedCode !== code) {
+
+    codeEditor.value = fixedCode;
+
+    outputArea.textContent = 'Автоисправление применено.';
+
+   } else {
+
+    outputArea.textContent = 'Ошибок не обнаружено.';
+
+   }
+
+  }
+
+
+
+  // Имитация генерации изображения
+
+  function generateImage() {
+
+   const prompt = promptInput.value.trim();
+
+   if (!prompt) {
+
+    alert('Введите запрос для генерации изображения');
+
+    return;
+
+   }
+
+   mediaContainer.innerHTML = '';
+
+   const img = document.createElement('img');
+
+   // Заглушка с котиком
+
+   img.src = 'https://placekitten.com/400/300';
+
+   img.alt = `Generated for: ${prompt}`;
+
+   mediaContainer.appendChild(img);
+
+   outputArea.textContent = 'Изображение сгенерировано (заглушка).';
+
+  }
+
+
+
+  // Имитация генерации видео
+
+  function generateVideo() {
+
+   const prompt = promptInput.value.trim();
+
+   if (!prompt) {
+
+    alert('Введите запрос для генерации видео');
+
+    return;
+
+   }
+
+   mediaContainer.innerHTML = '';
+
+   const video = document.createElement('video');
+
+   video.controls = true;
+
+   video.src = 'https://sample-videos.com/video123/mp4/240/big_buck_bunny_240p_1mb.mp4';
+
+   mediaContainer.appendChild(video);
+
+   outputArea.textContent = 'Видео сгенерировано (заглушка).';
+
+  }
+
+
+
+  // Имитация экспорта APK
+
+  function exportApk() {
+
+   if (!currentProjectName) {
+
+    alert('Сначала сохраните проект с именем.');
+
+    return;
+
+   }
+
+   outputArea.textContent = `APK для проекта "${currentProjectName}" создан (имитация).`;
+
+  }
+
+
+
+  // Привязка событий
+
+  document.getElementById('saveProjectBtn').onclick = saveCurrentProject;
+
+  document.getElementById('newProjectBtn').onclick = newProject;
+
+  document.getElementById('runCodeBtn').onclick = runCode;
+
+  document.getElementById('autoFixBtn').onclick = autoFix;
+
+  document.getElementById('genImageBtn').onclick = generateImage;
+
+  document.getElementById('genVideoBtn').onclick = generateVideo;
+
+  document.getElementById('exportApkBtn').onclick = exportApk;
+
+
+
+  // Инициализация
+
+  refreshProjectsList();
+
+ </script>
+
+</body>
+
+</html>
